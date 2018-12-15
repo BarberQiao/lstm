@@ -9,6 +9,7 @@ from numpy import ndarray
 from numpy import shape
 from numpy import argmax
 from numpy import empty
+from numpy import zeros
 from matplotlib import pyplot
 
 class DataCreate:
@@ -56,10 +57,42 @@ class DataCreate:
             returnX[j]=X[0]
             returnY[j]=y[0]
         return returnX , returnY
-    def generateexample_cnnlstm(self,n_patterns,timesteps,width,height,channels):
+    def generateexample_cnnlstm(self,n_patterns,length,width,height,n_features):
         X,y=list(),list()
+        for _ in range(n_patterns):
+            right = 1 if random() < 0.5 else 0
+            spotlist = list()
+            for i in range(length):
+                if i == 0:
+                    spot = (i, randint(0, height - 1))
+                else:
+                    lastspot = spotlist[len(spotlist) - 1]
+                    lastheight = lastspot[1]
+                    if lastheight == 0:
+                        spot = (i, randint(lastheight, lastheight + 1))
+                    elif lastheight == height - 1:
+                        spot = (i, randint(lastheight - 1, lastheight))
+                    else:
+                        spot = (i, randint(lastheight - 1, lastheight + 1))
+                spotlist.append(spot)
 
+            if right == False:
+                spotlist.reverse()
+
+            frames = list()
+            for i in range(length):
+                emptyframe = zeros((width, height))
+                for j in range(i+1):
+                    emptyframe[spotlist[j][0], spotlist[j][1]] = 1
+                frames.append(emptyframe)
+            X.append(frames)
+            y.append(right)
+
+        X=array(X).reshape(n_patterns,length,width,height,n_features)
+        y=array(y).reshape(n_patterns,n_features)
         return X,y
+
+
     def generateexample_stacklstm(self,n_patterns,length,n_features,out_count):
         X,y=list(),list()
         for _ in range(n_patterns):
@@ -73,5 +106,6 @@ class DataCreate:
         return X,y
 
 if __name__=="__main__":
-    mydatacreate=DataCreate()
-    X_train, y_train = generateexample_cnnlstm()
+    mydata=DataCreate()
+    mydata.generateexample_cnnlstm(3,50,50,30,1)
+
